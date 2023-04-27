@@ -52,3 +52,11 @@ export const register = async (req, res) => {
     });
   }
 };
+
+export const varify = async (req, res) => {
+  try {
+    const otp = Number(req.body.otp);
+
+    const user = await Users.findById(req.user._id);
+  } catch (error) {}
+};
