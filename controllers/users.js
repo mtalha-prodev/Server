@@ -33,11 +33,13 @@ export const register = async (req, res) => {
         url: "",
       },
       otp,
-      otp_expiry: new Date(Date.now() + process.env.OTP_EXPIRY * 60 * 1000),
+      otp_expiry: new Date(
+        Date.now() + process.env.OTP_EXPIRY * 24 * 60 * 60 * 1000
+      ),
     });
 
     // send otp code in user email
-    await sendMail(email, "Varify your account", `Your otp is ${otp}`);
+    // await sendMail(email, "Varify your account", `Your otp is ${otp}`);
     // send token
     sendToken(
       res,
@@ -57,6 +59,7 @@ export const verify = async (req, res) => {
   try {
     // get otp code from user
     const otp = Number(req.body.otp);
+    console.log(top);
     // get user id auth token from user middleware isAuth
     const user = await Users.findById(req.user._id);
 
@@ -68,12 +71,51 @@ export const verify = async (req, res) => {
       });
     }
 
-    (user.varified = true), (user.otp_expiry = null);
+    user.varified = true;
+    user.otp_expiry = null;
     user.otp = null;
 
     await user.save();
 
     sendToken(res, user, 200, "User is Varified");
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: error.message,
+    });
+  }
+};
+
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        status: false,
+        message: "please provide email and password",
+      });
+    }
+
+    const user = await Users.findOne({ email }).select("+password");
+
+    if (!user) {
+      return res.status(400).json({
+        status: false,
+        message: "User not found",
+      });
+    }
+    // compara  user password
+    const isMatch = await user.isMatchPassword(password);
+
+    if (!isMatch) {
+      return res.status(400).json({
+        status: false,
+        message: "Email & Password is incorrect",
+      });
+    }
+
+    sendToken(res, user, 200, "User logged in successfully");
   } catch (error) {
     res.status(500).json({
       status: false,
