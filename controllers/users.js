@@ -53,10 +53,31 @@ export const register = async (req, res) => {
   }
 };
 
-export const varify = async (req, res) => {
+export const verify = async (req, res) => {
   try {
+    // get otp code from user
     const otp = Number(req.body.otp);
-
+    // get user id auth token from user middleware isAuth
     const user = await Users.findById(req.user._id);
-  } catch (error) {}
+
+    // check otp code
+    if (otp !== user.otp || user.otp_expiry !== Date.now()) {
+      return res.status(400).json({
+        status: false,
+        message: "OTP is not correct",
+      });
+    }
+
+    (user.varified = true), (user.otp_expiry = null);
+    user.otp = null;
+
+    await user.save();
+
+    sendToken(res, user, 200, "User is Varified");
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: error.message,
+    });
+  }
 };
