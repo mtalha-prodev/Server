@@ -6,7 +6,9 @@ export const sendToken = async (res, user, statusCode, message) => {
     // options in expires token cookie
     const options = {
       httpOnly: true,
-      expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRY * 60 * 1000),
+      expires: new Date(
+        Date.now() + process.env.JWT_COOKIE_EXPIRY * 24 * 60 * 60 * 1000
+      ),
     };
 
     const userData = {
@@ -15,6 +17,7 @@ export const sendToken = async (res, user, statusCode, message) => {
       email: user.email,
       avatar: user.avatar,
       tasks: user.tasks,
+      verified: user.verified,
     };
 
     // console.log(token);

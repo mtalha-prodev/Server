@@ -13,10 +13,11 @@ export const isAuth = async (req, res, next) => {
       });
     }
     // decode token verifier in jwt
+    // console.log(process.env.JWT_SECRET);
     const decode = jwt.verify(token, process.env.JWT_SECRET);
     // set value in user auth request
     req.user = await Users.findById(decode._id);
-
+    // console.log(req.user);
     next();
   } catch (error) {
     res.status(500).json({

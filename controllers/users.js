@@ -45,7 +45,7 @@ export const register = async (req, res) => {
       res,
       user,
       200,
-      "OTP send your email, please varify your account"
+      "OTP send your email, please verify your account"
     );
   } catch (error) {
     res.status(500).json({
@@ -59,29 +59,31 @@ export const verify = async (req, res) => {
   try {
     // get otp code from user
     const otp = Number(req.body.otp);
-    console.log(top);
     // get user id auth token from user middleware isAuth
     const user = await Users.findById(req.user._id);
 
     // check otp code
-    if (otp !== user.otp || user.otp_expiry !== Date.now()) {
+    if (otp !== user.otp || user.otp_expiry < Date.now()) {
       return res.status(400).json({
         status: false,
         message: "OTP is not correct",
       });
     }
 
-    user.varified = true;
+    user.verified = true;
     user.otp_expiry = null;
     user.otp = null;
 
+    // console.log(user);
     await user.save();
 
-    sendToken(res, user, 200, "User is Varified");
+    console.log(otp);
+    sendToken(res, user, 200, "User is Verified");
   } catch (error) {
     res.status(500).json({
       status: false,
       message: error.message,
+      text: "User is not verified and cannot be saved",
     });
   }
 };
@@ -116,6 +118,25 @@ export const login = async (req, res) => {
     }
 
     sendToken(res, user, 200, "User logged in successfully");
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: error.message,
+    });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    res
+      .status(200)
+      .cookie("token", null, {
+        expires: new Date(Date.now()),
+      })
+      .json({
+        status: true,
+        message: "User logged out successfully",
+      });
   } catch (error) {
     res.status(500).json({
       status: false,

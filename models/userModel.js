@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
     },
   ],
 
-  varified: {
+  verified: {
     type: Boolean,
     default: false,
   },
