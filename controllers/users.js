@@ -1,11 +1,12 @@
 import Users from "../models/userModel.js";
 import { sendMail } from "../utils/sendMail.js";
 import { sendToken } from "../utils/sendToken.js";
+import bcrypt from "bcryptjs";
 
 // user registeration fuction
 export const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email } = req.body;
 
     // get user pic
     // const { avatar } = req.files;
@@ -22,6 +23,12 @@ export const register = async (req, res) => {
 
     // create otp 6 number
     const otp = Math.floor(Math.random() * 1000000);
+
+    // bcrypt password
+    const salt = await bcrypt.genSalt(10);
+    const password = await bcrypt.hash(req.body.password, salt);
+
+    // console.log(password);
 
     // create user detail in database
     user = await Users.create({
@@ -74,7 +81,7 @@ export const verify = async (req, res) => {
     user.otp_expiry = null;
     user.otp = null;
 
-    // console.log(user);
+    console.log(user);
     await user.save();
 
     console.log(otp);
@@ -83,6 +90,7 @@ export const verify = async (req, res) => {
     res.status(500).json({
       status: false,
       message: error.message,
+      messages: error,
       text: "User is not verified and cannot be saved",
     });
   }

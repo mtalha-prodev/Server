@@ -34,7 +34,6 @@ const userSchema = new mongoose.Schema({
       completed: Boolean,
     },
   ],
-
   verified: {
     type: Boolean,
     default: false,
@@ -45,12 +44,12 @@ const userSchema = new mongoose.Schema({
 });
 
 // password bcript
-userSchema.pre("save", async function (next) {
-  const salt = await bcrypt.genSalt(10);
+// userSchema.pre("save", async function (next) {
+//   const salt = await bcrypt.genSalt(10);
 
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
+//   this.password = await bcrypt.hash(this.password, salt);
+//   next();
+// });
 
 // user password compare
 
@@ -60,6 +59,7 @@ userSchema.methods.isMatchPassword = async function (password) {
 
 // create jwt token
 userSchema.methods.getJWTToken = function () {
+  // console.log(process.env.JWT_COOKIE_EXPIRY);
   return jwt.sign({ _id: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_COOKIE_EXPIRY * 24 * 60 * 60 * 1000,
   });
