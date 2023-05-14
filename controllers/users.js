@@ -3,7 +3,7 @@ import { sendMail } from "../utils/sendMail.js";
 import { sendToken } from "../utils/sendToken.js";
 import bcrypt from "bcryptjs";
 
-// user registeration fuction
+// user registeration function with token and cookie send otp code
 export const register = async (req, res) => {
   try {
     const { name, email } = req.body;
@@ -41,7 +41,7 @@ export const register = async (req, res) => {
       },
       otp,
       otp_expiry: new Date(
-        Date.now() + process.env.OTP_EXPIRY * 24 * 60 * 60 * 1000
+        Date.now() + process.env.OTP_EXPIRY * 60 * 60 * 1000
       ),
     });
 
@@ -61,7 +61,7 @@ export const register = async (req, res) => {
     });
   }
 };
-
+// verify token with otp code and user login
 export const verify = async (req, res) => {
   try {
     // get otp code from user
@@ -95,7 +95,7 @@ export const verify = async (req, res) => {
     });
   }
 };
-
+// login user with set cookie
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -133,7 +133,7 @@ export const login = async (req, res) => {
     });
   }
 };
-
+// logout function with cookie null value
 export const logout = async (req, res) => {
   try {
     res
@@ -150,5 +150,65 @@ export const logout = async (req, res) => {
       status: false,
       message: error.message,
     });
+  }
+};
+// add tasks function
+export const addTasks = async (req, res) => {
+  try {
+    const { title, description } = req.body;
+
+    // "req.user._id" get value in isAuthorized middleware
+
+    const user = await Users.findById(req.user._id);
+
+    user.tasks.push({
+      title,
+      description,
+      completed: false,
+      createAt: new Date(Date.now()),
+    });
+
+    await user.save();
+
+    sendToken(res, user, 200, "User Tasks added successfully");
+  } catch (error) {
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+// remove tasks function
+export const removeTasks = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const user = await Users.findById(req.user._id);
+    //
+    user.tasks = user.tasks.filter((task) => task._id != taskId);
+
+    // console.log(user.tasks);
+
+    await user.save();
+
+    sendToken(res, user, 200, "User Tasks removed successfully");
+  } catch (error) {
+    res.status(500).json({ status: false, message: error.message });
+  }
+};
+// update task function
+export const updateTasks = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const user = await Users.findById(req.user._id);
+
+    user.task = user.tasks.find((task) => task._id == taskId);
+
+    // console.log(!user.task.completed);
+    user.task.completed = !user.task.completed;
+
+    await user.save();
+
+    res
+      .status(200)
+      .json({ status: true, message: " Task updated successfully" });
+  } catch (error) {
+    res.status(500).json({ status: false, message: error.message });
   }
 };

@@ -65,4 +65,6 @@ userSchema.methods.getJWTToken = function () {
   });
 };
 
+userSchema.index({ otp_expiry: 1 }, { expireAfterSeconds: 0 });
+
 export default mongoose.model("User", userSchema);
