@@ -22,6 +22,7 @@ router.route("/verify").post(isAuth, verify);
 router.route("/login").post(login);
 router.route("/logout").get(logout);
 
+
 router.route("/addTasks").post(isAuth, addTasks);
 router
   .route("/task/:taskId")
